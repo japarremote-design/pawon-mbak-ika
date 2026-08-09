@@ -41,7 +41,25 @@ export async function generateMetadata(): Promise<Metadata> {
     ? `Menu ${kapan}: ${daftarMenu}${aktif.length > 6 ? ' · dan lainnya' : ''}. Pesan online, bayar tunai atau QRIS.`
     : s.deskripsi;
 
-  const gambar = s.ogImage || `${url}/api/og?v=${sidikMenu(aktif)}${layan.untukBesok ? 'b' : ''}`;
+  const ogAsli = `${url}/api/og?v=${sidikMenu(aktif)}${layan.untukBesok ? 'b' : ''}`;
+
+  /**
+   * WhatsApp menolak pratinjau kalau gambarnya terlalu besar atau lambat dibuat:
+   * PNG kolase 1200x630 gampang tembus 600 KB dan perendernya butuh beberapa detik,
+   * sementara perayap WhatsApp menyerah lebih cepat daripada Telegram.
+   * Solusinya gambar dilewatkan Cloudinary "fetch": Cloudinary mengambil PNG kita sekali,
+   * mengubahnya jadi JPEG ringan, lalu menyajikannya dari CDN — ringan dan langsung jadi.
+   */
+  const cloud = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const lewatCloudinary = Boolean(cloud) && ogAsli.startsWith('https://');
+  const gambar =
+    s.ogImage ||
+    (lewatCloudinary
+      ? `https://res.cloudinary.com/${cloud}/image/fetch/f_jpg,q_auto:good,w_1200,h_630,c_fill/${encodeURIComponent(
+          ogAsli,
+        )}`
+      : ogAsli);
+  const jenisGambar = s.ogImage ? undefined : lewatCloudinary ? 'image/jpeg' : 'image/png';
   return {
     metadataBase: new URL(url),
     title: { default: judul, template: `%s · ${s.namaUsaha}` },
@@ -55,7 +73,7 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: s.namaUsaha,
       title: judul,
       description: deskripsi,
-      images: [{ url: gambar, width: 1200, height: 630, alt: s.namaUsaha }],
+      images: [{ url: gambar, secureUrl: gambar, type: jenisGambar, width: 1200, height: 630, alt: s.namaUsaha }],
     },
     twitter: {
       card: 'summary_large_image',

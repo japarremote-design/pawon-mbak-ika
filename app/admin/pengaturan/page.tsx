@@ -37,7 +37,7 @@ const TEKS: { k: keyof Settings; label: string; petunjuk?: string; area?: boolea
 export default function Pengaturan() {
   const [s, setS] = useState<Settings>(DEFAULT_SETTINGS);
   const [pesan, setPesan] = useState('');
-  const [unggah, setUnggah] = useState<'logo' | 'qris' | null>(null);
+  const [unggah, setUnggah] = useState<'logo' | 'qris' | 'og' | null>(null);
 
   useEffect(() => {
     const off = onValue(ref(getDb(), 'settings'), (snap) => {
@@ -58,12 +58,14 @@ export default function Pengaturan() {
     setTimeout(() => setPesan(''), 2500);
   };
 
-  const gambar = async (jenis: 'logo' | 'qris', file?: File | null) => {
+  const KUNCI = { logo: 'logoUrl', qris: 'qrisUrl', og: 'ogImage' } as const;
+
+  const gambar = async (jenis: 'logo' | 'qris' | 'og', file?: File | null) => {
     if (!file) return;
     setUnggah(jenis);
     try {
       const url = await uploadCloudinary(file);
-      setS((v) => ({ ...v, [jenis === 'logo' ? 'logoUrl' : 'qrisUrl']: url }));
+      setS((v) => ({ ...v, [KUNCI[jenis]]: url }));
       setPesan('Gambar terunggah. Jangan lupa tekan Simpan.');
     } catch (e: any) {
       setPesan(e?.message || 'Gambar gagal diunggah.');
@@ -79,12 +81,14 @@ export default function Pengaturan() {
         Semua yang tampil di halaman depan diatur dari sini — tidak perlu ubah kode.
       </p>
 
-      <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        {(['logo', 'qris'] as const).map((jenis) => {
-          const url = jenis === 'logo' ? s.logoUrl : s.qrisUrl;
+      <div className="mt-5 grid gap-4 sm:grid-cols-3">
+        {(['logo', 'qris', 'og'] as const).map((jenis) => {
+          const url = jenis === 'logo' ? s.logoUrl : jenis === 'qris' ? s.qrisUrl : s.ogImage;
+          const judul =
+            jenis === 'logo' ? 'Logo usaha' : jenis === 'qris' ? 'Kode QRIS' : 'Gambar pratinjau share';
           return (
             <div key={jenis} className="kartu">
-              <p className="label">{jenis === 'logo' ? 'Logo usaha' : 'Kode QRIS'}</p>
+              <p className="label">{judul}</p>
               {url ? (
                 <Image
                   src={url}
@@ -106,6 +110,21 @@ export default function Pengaturan() {
                 onChange={(e) => gambar(jenis, e.target.files?.[0])}
               />
               {unggah === jenis && <p className="mt-1 text-sm text-ink/60">Mengunggah…</p>}
+              {jenis === 'og' && (
+                <p className="mt-2 text-xs text-ink/60">
+                  Kosongkan saja — pratinjau dibuat otomatis dari foto menu yang sedang dibuka.
+                  Isi hanya kalau ingin memakai satu gambar tetap.
+                  {url && (
+                    <button
+                      type="button"
+                      onClick={() => setS((v) => ({ ...v, ogImage: '' }))}
+                      className="ml-1 font-semibold text-sambal underline"
+                    >
+                      Kembalikan ke otomatis
+                    </button>
+                  )}
+                </p>
+              )}
             </div>
           );
         })}

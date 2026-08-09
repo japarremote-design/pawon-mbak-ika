@@ -197,6 +197,37 @@ Karena itu pakai tombol **Salin link untuk dibagikan** di panel Menu — link-ny
 penanda tanggal. Untuk Facebook, pratinjau bisa dipaksa segar lewat
 [Sharing Debugger](https://developers.facebook.com/tools/debug/).
 
+### Kalau pratinjau gagal di WhatsApp (jadi teks polos)
+
+Telegram dan Facebook sabar menunggu gambar dibuat; **WhatsApp menyerah lebih cepat** dan menolak
+gambar yang terlalu besar (kira-kira di atas 600 KB). Kolase PNG 1200x630 berisi 8 foto makanan
+gampang menembus angka itu — gejalanya persis: sempat loading, lalu link jadi teks biasa.
+
+Karena itu alamat `og:image` **tidak menunjuk langsung** ke `/api/og`, tapi dilewatkan
+Cloudinary fetch:
+
+```
+https://res.cloudinary.com/<cloud>/image/fetch/f_jpg,q_auto:good,w_1200,h_630,c_fill/<alamat /api/og>
+```
+
+Cloudinary mengambil PNG kita sekali, mengubahnya jadi JPEG ringan (biasanya 100–200 KB), lalu
+menyajikannya dari CDN — jadi WhatsApp menerimanya cepat. Hasil `/api/og` sendiri juga diberi
+`Cache-Control` panjang, aman karena alamatnya sudah bertanda `?v=<sidik menu>`.
+
+Kalau masih gagal, periksa berurutan:
+
+1. `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` sudah terisi di Environment Variables Vercel? Tanpa itu
+   alamat gambar kembali menunjuk PNG langsung.
+2. `NEXT_PUBLIC_SITE_URL` sudah `https://…` (bukan `http://` atau kosong)? Cloudinary fetch hanya
+   dipakai kalau alamatnya https.
+3. Di Cloudinary → **Settings → Security**, kalau "Allowed fetch domains" diisi, tambahkan
+   `pawon-mbak-ika.vercel.app` (dan nanti `pawonmbakika.my.id`).
+4. Buka sendiri alamat `og:image`-nya di browser — kalau gambarnya muncul, WhatsApp cuma perlu
+   link yang belum tersimpan cache-nya (pakai tombol **Salin link untuk dibagikan**).
+5. Jalan darurat: unggah satu gambar tetap di **Pengaturan → Gambar pratinjau share**. Selama diisi,
+   gambar itu yang dipakai dan pembuatan otomatis dilewati. Tekan "Kembalikan ke otomatis" untuk
+   membatalkannya.
+
 Foto menu sebaiknya mendatar (landscape) dan terang — di kisi pratinjau fotonya dipotong
 mengikuti kotak, jadi letakkan makanannya di tengah bingkai.
 

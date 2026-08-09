@@ -103,7 +103,13 @@ export async function GET() {
           </div>
         </div>
       ),
-      { width: 1200, height: 630 },
+      {
+        width: 1200,
+        height: 630,
+        headers: {
+          'Cache-Control': 'public, max-age=300, s-maxage=86400, stale-while-revalidate=3600',
+        },
+      },
     );
   }
 
@@ -177,7 +183,7 @@ export async function GET() {
                   {m.gambarUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={fotoKecil(m.gambarUrl, 420)}
+                      src={fotoKecil(m.gambarUrl, 320)}
                       alt=""
                       style={{
                         position: 'absolute',
@@ -239,6 +245,13 @@ export async function GET() {
         </div>
       </div>
     ),
-    { width: 1200, height: 630 },
+    {
+      width: 1200,
+      height: 630,
+      headers: {
+        // aman disimpan lama: tiap menu berubah, alamatnya ikut berubah (?v=sidik)
+        'Cache-Control': 'public, max-age=300, s-maxage=31536000, stale-while-revalidate=86400',
+      },
+    },
   );
 }
