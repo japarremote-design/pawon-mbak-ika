@@ -178,7 +178,7 @@ export default function Pesanan() {
                 </button>
               ))}
               <a
-                href={waLink(o.wa, `Halo ${o.nama}, pesanan ${o.kode} `)}
+                href={waLink(o.wa, `Assalamualikum Wr. Wb. Halo ${o.nama}, pesanan ${o.kode} `)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="ml-auto rounded-full bg-[#25D366] px-3 py-1.5 text-xs font-bold text-white"
