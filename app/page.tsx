@@ -84,7 +84,7 @@ export default async function Beranda() {
               {siap > 0 ? `Lihat ${siap} menu hari ini` : 'Lihat papan menu'}
             </a>
             <a
-              href={waLink(settings.wa, `Halo ${settings.namaUsaha}, saya mau pesan.`)}
+              href={waLink(settings.wa, `Assalamualikum Wr. Wb. Halo ${settings.namaUsaha}, saya mau pesan.`)}
               target="_blank"
               rel="noopener noreferrer"
               className="btn border-2 border-paper/40 text-paper hover:bg-paper hover:text-daun"
