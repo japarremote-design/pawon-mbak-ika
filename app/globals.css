@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body: 'Figtree', system-ui, sans-serif;
+  --font-struk: 'Space Mono', ui-monospace, monospace;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: #f3eee4;
+  color: #17130f;
+  font-family: var(--font-body);
+  /* serat anyaman tikar tipis di latar */
+  background-image:
+    repeating-linear-gradient(90deg, rgba(180, 98, 59, 0.05) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(0deg, rgba(180, 98, 59, 0.05) 0 1px, transparent 1px 9px);
+}
+
+@layer components {
+  /* Papan menu: kayu gelap dengan kapur */
+  .papan {
+    @apply rounded-[26px] bg-daun text-paper shadow-papan;
+    background-image: radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.09), transparent 55%);
+  }
+
+  /* Struk termal — elemen tanda tangan halaman ini */
+  .struk {
+    @apply bg-kertas font-struk text-ink;
+    filter: drop-shadow(0 12px 24px rgba(23, 19, 15, 0.18));
+    -webkit-mask-image:
+      radial-gradient(circle at 6px 6px, transparent 6px, #000 6.5px),
+      linear-gradient(#000, #000);
+    -webkit-mask-size: 12px 12px, 100% calc(100% - 12px);
+    -webkit-mask-position: bottom left, top left;
+    -webkit-mask-repeat: repeat-x, no-repeat;
+    mask-image:
+      radial-gradient(circle at 6px 6px, transparent 6px, #000 6.5px),
+      linear-gradient(#000, #000);
+    mask-size: 12px 12px, 100% calc(100% - 12px);
+    mask-position: bottom left, top left;
+    mask-repeat: repeat-x, no-repeat;
+  }
+
+  .garis-putus {
+    border-top: 2px dashed rgba(23, 19, 15, 0.25);
+  }
+
+  /* Stempel karet HABIS */
+  .stempel {
+    @apply pointer-events-none absolute font-display text-sambal;
+    border: 4px solid currentColor;
+    border-radius: 10px;
+    padding: 2px 12px;
+    letter-spacing: 0.18em;
+    transform: rotate(-14deg);
+    opacity: 0.85;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 font-semibold transition active:scale-[0.98];
+  }
+  .btn-utama {
+    @apply btn bg-sambal text-white hover:brightness-110;
+  }
+  .btn-garis {
+    @apply btn border-2 border-daun text-daun hover:bg-daun hover:text-paper;
+  }
+
+  .kartu {
+    @apply rounded-2xl border border-daun/10 bg-kertas p-4;
+  }
+
+  .label {
+    @apply mb-1 block text-sm font-semibold text-daun;
+  }
+  .input {
+    @apply w-full rounded-xl border border-daun/25 bg-white px-4 py-3 text-ink outline-none focus:border-daun focus:ring-2 focus:ring-daun/25;
+  }
+}
+
+/* aksesibilitas */
+:focus-visible {
+  outline: 3px solid #d9a03c;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

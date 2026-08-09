@@ -1,0 +1,70 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "settings": {
+      ".read": true,
+      ".write": "auth != null && (auth.token.email === 'qfazdigital@gmail.com' || auth.token.email === 'ika.indriyani81@gmail.com')"
+    },
+
+    "menu": {
+      ".read": true,
+      ".write": "auth != null && (auth.token.email === 'qfazdigital@gmail.com' || auth.token.email === 'ika.indriyani81@gmail.com')",
+      "$menuId": {
+        ".validate": "newData.hasChildren(['nama', 'harga', 'aktif'])",
+        "nama": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120" },
+        "harga": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "aktif": { ".validate": "newData.isBoolean()" }
+      }
+    },
+
+    "counters": {
+      "$hari": {
+        ".read": true,
+        ".write": "newData.isNumber() && (!data.exists() ? newData.val() === 1 : newData.val() === data.val() + 1)"
+      }
+    },
+
+    "orders": {
+      ".read": "auth != null && (auth.token.email === 'qfazdigital@gmail.com' || auth.token.email === 'ika.indriyani81@gmail.com')",
+      ".indexOn": ["tanggalAmbil", "status"],
+
+      "$orderId": {
+        ".read": true,
+        ".write": "!data.exists() || (auth != null && (auth.token.email === 'qfazdigital@gmail.com' || auth.token.email === 'ika.indriyani81@gmail.com'))",
+        ".validate": "newData.hasChildren(['kode', 'nama', 'wa', 'tanggalAmbil', 'metodeBayar', 'total', 'status'])",
+
+        "kode": { ".validate": "newData.isString() && newData.val().length <= 30" },
+        "tipe": { ".validate": "newData.val() === 'reguler' || newData.val() === 'custom'" },
+        "nama": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80" },
+        "wa": { ".validate": "newData.isString() && newData.val().length >= 8 && newData.val().length <= 25" },
+        "tanggalAmbil": { ".validate": "newData.isString() && newData.val().length === 10" },
+        "jamAmbil": { ".validate": "newData.isString() || newData.val() === null" },
+        "metodeBayar": { ".validate": "newData.val() === 'tunai' || newData.val() === 'qris'" },
+        "total": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "jumlahPorsi": { ".validate": "newData.isNumber() || newData.val() === null" },
+        "permintaan": { ".validate": "newData.val() === null || (newData.isString() && newData.val().length <= 800)" },
+        "catatan": { ".validate": "newData.val() === null || (newData.isString() && newData.val().length <= 500)" },
+        "status": {
+          ".validate": "!data.exists() ? newData.val() === 'baru' : newData.val().matches(/^(baru|dikonfirmasi|diproses|selesai|batal)$/)"
+        },
+        "createdAt": { ".validate": "newData.isNumber()" },
+        "updatedAt": { ".validate": "newData.isNumber()" },
+
+        "items": {
+          "$i": {
+            ".validate": "newData.hasChildren(['menuId', 'nama', 'harga', 'qty'])",
+            "qty": { ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 500" },
+            "harga": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+            "nama": { ".validate": "newData.isString()" },
+            "menuId": { ".validate": "newData.isString()" },
+            "$lain": { ".validate": false }
+          }
+        },
+
+        "$lain": { ".validate": false }
+      }
+    }
+  }
+}
