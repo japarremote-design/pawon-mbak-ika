@@ -15,6 +15,13 @@ const TEKS: { k: keyof Settings; label: string; petunjuk?: string; area?: boolea
   { k: 'alamat', label: 'Alamat' },
   { k: 'jamBuka', label: 'Jam buka' },
   { k: 'batasPesan', label: 'Batas waktu pesan' },
+  {
+    k: 'jamGantiMenu',
+    label: 'Jam papan menu pindah ke besok (HH:MM)',
+    petunjuk: 'Contoh 13:00 — mulai jam segitu papan menampilkan menu besok, dan pesanan yang masuk dihitung untuk besok.',
+  },
+  { k: 'ongkir', label: 'Keterangan ongkir', petunjuk: 'Muncul saat pemesan memilih dikirim kurir.' },
+  { k: 'wilayahAntar', label: 'Wilayah yang dilayani kurir' },
   { k: 'qrisNama', label: 'Nama pemilik QRIS' },
   { k: 'instagram', label: 'Link Instagram' },
   { k: 'facebook', label: 'Link Facebook' },

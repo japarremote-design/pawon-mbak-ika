@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { onValue, query, limitToLast, ref } from 'firebase/database';
 import { getDb } from '@/lib/firebase';
 import { ubahStatus } from '@/lib/order';
-import { isoHariIni, rupiah, tanggalPanjang, tanggalPendek, waLink } from '@/lib/utils';
+import { rupiah, tanggalLayan, tanggalPanjang, tanggalPendek, waLink } from '@/lib/utils';
 import type { Order, OrderStatus } from '@/lib/types';
 
 const STATUS: OrderStatus[] = ['baru', 'dikonfirmasi', 'diproses', 'selesai', 'batal'];
@@ -34,7 +34,16 @@ export default function Pesanan() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [saring, setSaring] = useState<'aktif' | 'semua' | OrderStatus>('aktif');
   const [tanggal, setTanggal] = useState('');
+  const [jamGanti, setJamGanti] = useState('13:00');
   const jumlahAwal = useRef<number | null>(null);
+
+  // jam pindah papan menu diambil dari Pengaturan
+  useEffect(() => {
+    const off = onValue(ref(getDb(), 'settings/jamGantiMenu'), (snap) => {
+      setJamGanti(snap.val() || '13:00');
+    });
+    return () => off();
+  }, []);
 
   useEffect(() => {
     const off = onValue(query(ref(getDb(), 'orders'), limitToLast(300)), (snap) => {
@@ -63,16 +72,20 @@ export default function Pesanan() {
     });
   }, [orders, saring, tanggal]);
 
-  const rekapHariIni = useMemo(() => {
-    const hari = isoHariIni();
-    const isi = orders.filter((o) => o.tanggalAmbil === hari && o.status !== 'batal');
+  // Setelah jam pindah papan (bawaan 13.00), rekap ikut melompat ke pesanan besok —
+  // karena sejak jam itu yang dimasak Mbak Ika adalah pesanan untuk besok.
+  const layan = tanggalLayan(jamGanti);
+
+  const rekap = useMemo(() => {
+    const isi = orders.filter((o) => o.tanggalAmbil === layan.tanggal && o.status !== 'batal');
     const porsi = isi.reduce(
       (n, o) => n + (o.items?.reduce((x, i) => x + i.qty, 0) || o.jumlahPorsi || 0),
       0,
     );
     const uang = isi.reduce((n, o) => n + (o.total || 0), 0);
-    return { pesanan: isi.length, porsi, uang };
-  }, [orders]);
+    const kurir = isi.filter((o) => o.pengiriman === 'kurir').length;
+    return { pesanan: isi.length, porsi, uang, kurir };
+  }, [orders, layan.tanggal]);
 
   return (
     <div>
@@ -86,11 +99,16 @@ export default function Pesanan() {
         </button>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-3">
+      <p className="mt-3 text-sm text-ink/70">
+        Rekap untuk <b>{layan.untukBesok ? 'BESOK' : 'HARI INI'}</b> · {tanggalPanjang(layan.tanggal)}
+      </p>
+
+      <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          ['Pesanan hari ini', String(rekapHariIni.pesanan)],
-          ['Total porsi', String(rekapHariIni.porsi)],
-          ['Perkiraan uang', rupiah(rekapHariIni.uang)],
+          [layan.untukBesok ? 'Pesanan besok' : 'Pesanan hari ini', String(rekap.pesanan)],
+          ['Total porsi', String(rekap.porsi)],
+          ['Perkiraan uang', rupiah(rekap.uang)],
+          ['Dikirim kurir', String(rekap.kurir)],
         ].map(([t, v]) => (
           <div key={t} className="kartu">
             <p className="text-xs uppercase tracking-wide text-daunmuda">{t}</p>
@@ -111,6 +129,12 @@ export default function Pesanan() {
             {s}
           </button>
         ))}
+        <button
+          onClick={() => setTanggal(layan.tanggal)}
+          className="rounded-full bg-kunyit px-3 py-1.5 text-sm font-bold text-ink"
+        >
+          Hanya {layan.untukBesok ? 'besok' : 'hari ini'}
+        </button>
         <input
           type="date"
           value={tanggal}
@@ -132,15 +156,27 @@ export default function Pesanan() {
                 <p className="font-struk text-sm text-sambal">{o.kode}</p>
                 <h2 className="font-display text-lg font-bold">{o.nama}</h2>
                 <p className="text-sm text-ink/70">
-                  Ambil {tanggalPanjang(o.tanggalAmbil)}
+                  {o.pengiriman === 'kurir' ? 'Dikirim' : 'Diambil'} {tanggalPanjang(o.tanggalAmbil)}
                   {o.jamAmbil ? ` · ${o.jamAmbil}` : ''} · bayar{' '}
                   {o.metodeBayar === 'qris' ? 'QRIS' : 'tunai'}
                 </p>
+                {o.pengiriman === 'kurir' && (
+                  <p className="mt-1 whitespace-pre-wrap rounded-lg bg-gerabah/15 p-2 text-sm">
+                    <b>Antar ke:</b> {o.alamat || '(alamat kosong — tanyakan lewat WA)'}
+                  </p>
+                )}
                 <p className="text-xs text-ink/50">Masuk {tanggalPendek(o.createdAt || 0)}</p>
               </div>
-              <span className="rounded-full bg-kunyit/30 px-3 py-1 text-xs font-bold uppercase">
-                {o.status}
-              </span>
+              <div className="flex flex-col items-end gap-1">
+                <span className="rounded-full bg-kunyit/30 px-3 py-1 text-xs font-bold uppercase">
+                  {o.status}
+                </span>
+                {o.pengiriman === 'kurir' && (
+                  <span className="rounded-full bg-gerabah px-3 py-1 text-xs font-bold uppercase text-white">
+                    kurir
+                  </span>
+                )}
+              </div>
             </div>
 
             {o.items?.length ? (
@@ -178,7 +214,7 @@ export default function Pesanan() {
                 </button>
               ))}
               <a
-                href={waLink(o.wa, `Assalamualikum Wr. Wb. Halo ${o.nama}, pesanan ${o.kode} `)}
+                href={waLink(o.wa, `Halo ${o.nama}, pesanan ${o.kode} `)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="ml-auto rounded-full bg-[#25D366] px-3 py-1.5 text-xs font-bold text-white"

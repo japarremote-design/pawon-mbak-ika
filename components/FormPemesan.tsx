@@ -1,37 +1,48 @@
 'use client';
 
 import Image from 'next/image';
-import { isoHariIni } from '@/lib/utils';
-import type { Settings } from '@/lib/types';
+import { isoHariIni, tanggalPanjang } from '@/lib/utils';
+import type { Pengiriman, Settings } from '@/lib/types';
 
 export type DataPemesan = {
   nama: string;
   wa: string;
   tanggalAmbil: string;
   jamAmbil: string;
+  pengiriman: Pengiriman;
+  alamat: string;
   metodeBayar: 'tunai' | 'qris';
   catatan: string;
 };
 
-export const pemesanKosong: DataPemesan = {
-  nama: '',
-  wa: '',
-  tanggalAmbil: isoHariIni(),
-  jamAmbil: '',
-  metodeBayar: 'tunai',
-  catatan: '',
-};
+export function pemesanAwal(tanggal?: string): DataPemesan {
+  return {
+    nama: '',
+    wa: '',
+    tanggalAmbil: tanggal || isoHariIni(),
+    jamAmbil: '',
+    pengiriman: 'ambil',
+    alamat: '',
+    metodeBayar: 'tunai',
+    catatan: '',
+  };
+}
 
 export default function FormPemesan({
   nilai,
   ubah,
   settings,
+  tanggalLayanan,
 }: {
   nilai: DataPemesan;
   ubah: (n: DataPemesan) => void;
   settings: Settings;
+  /** Tanggal yang sedang dilayani papan menu — jadi acuan tanggal terawal. */
+  tanggalLayanan?: string;
 }) {
   const set = <K extends keyof DataPemesan>(k: K, v: DataPemesan[K]) => ubah({ ...nilai, [k]: v });
+  const kurir = nilai.pengiriman === 'kurir';
+  const minTanggal = tanggalLayanan || isoHariIni();
 
   return (
     <div className="space-y-4">
@@ -64,16 +75,62 @@ export default function FormPemesan({
         />
       </div>
 
+      {/* cara terima pesanan */}
+      <div>
+        <span className="label">Cara terima pesanan</span>
+        <div className="grid grid-cols-2 gap-3">
+          {([
+            { k: 'ambil', judul: 'Diambil sendiri', ket: 'Datang ke pawon' },
+            { k: 'kurir', judul: 'Dikirim kurir', ket: 'Diantar ke alamat' },
+          ] as const).map((o) => (
+            <button
+              key={o.k}
+              type="button"
+              onClick={() => set('pengiriman', o.k)}
+              aria-pressed={nilai.pengiriman === o.k}
+              className={`rounded-xl border-2 px-3 py-3 text-left transition ${
+                nilai.pengiriman === o.k
+                  ? 'border-daun bg-daun text-paper'
+                  : 'border-daun/25 bg-white text-daun'
+              }`}
+            >
+              <span className="block font-semibold leading-tight">{o.judul}</span>
+              <span className="mt-0.5 block text-xs opacity-75">{o.ket}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {kurir && (
+        <div>
+          <label className="label" htmlFor="alamat">
+            Alamat pengiriman
+          </label>
+          <textarea
+            id="alamat"
+            className="input min-h-[90px]"
+            value={nilai.alamat}
+            onChange={(e) => set('alamat', e.target.value)}
+            placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan, patokan (contoh: sebelah toko bangunan)"
+            autoComplete="street-address"
+          />
+          <p className="mt-1 text-xs text-ink/60">
+            Tulis patokannya juga ya, biar kurir tidak muter-muter.
+            {settings.ongkir ? ` ${settings.ongkir}.` : ''}
+          </p>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="label" htmlFor="tgl">
-            Tanggal ambil / antar
+            Tanggal {kurir ? 'kirim' : 'ambil'}
           </label>
           <input
             id="tgl"
             type="date"
             className="input"
-            min={isoHariIni()}
+            min={minTanggal}
             value={nilai.tanggalAmbil}
             onChange={(e) => set('tanggalAmbil', e.target.value)}
           />
@@ -91,6 +148,7 @@ export default function FormPemesan({
           />
         </div>
       </div>
+      <p className="-mt-2 text-xs text-ink/60">Untuk {tanggalPanjang(nilai.tanggalAmbil)}</p>
 
       <div>
         <span className="label">Cara bayar</span>
@@ -146,7 +204,7 @@ export default function FormPemesan({
           className="input min-h-[80px]"
           value={nilai.catatan}
           onChange={(e) => set('catatan', e.target.value)}
-          placeholder="Tidak pedas, nasi dipisah, diantar ke alamat..."
+          placeholder="Tidak pedas, nasi dipisah, sambal dipisah..."
         />
       </div>
     </div>

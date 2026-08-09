@@ -33,7 +33,7 @@
       "$orderId": {
         ".read": true,
         ".write": "!data.exists() || (auth != null && (auth.token.email === 'qfazdigital@gmail.com' || auth.token.email === 'ika.indriyani81@gmail.com'))",
-        ".validate": "newData.hasChildren(['kode', 'nama', 'wa', 'tanggalAmbil', 'metodeBayar', 'total', 'status'])",
+        ".validate": "newData.hasChildren(['kode', 'nama', 'wa', 'tanggalAmbil', 'pengiriman', 'metodeBayar', 'total', 'status'])",
 
         "kode": { ".validate": "newData.isString() && newData.val().length <= 30" },
         "tipe": { ".validate": "newData.val() === 'reguler' || newData.val() === 'custom'" },
@@ -41,6 +41,8 @@
         "wa": { ".validate": "newData.isString() && newData.val().length >= 8 && newData.val().length <= 25" },
         "tanggalAmbil": { ".validate": "newData.isString() && newData.val().length === 10" },
         "jamAmbil": { ".validate": "newData.isString() || newData.val() === null" },
+        "pengiriman": { ".validate": "newData.val() === 'ambil' || newData.val() === 'kurir'" },
+        "alamat": { ".validate": "newData.val() === null || (newData.isString() && newData.val().length <= 400)" },
         "metodeBayar": { ".validate": "newData.val() === 'tunai' || newData.val() === 'qris'" },
         "total": { ".validate": "newData.isNumber() && newData.val() >= 0" },
         "jumlahPorsi": { ".validate": "newData.isNumber() || newData.val() === null" },

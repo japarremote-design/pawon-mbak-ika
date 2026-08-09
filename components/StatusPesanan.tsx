@@ -82,9 +82,13 @@ export default function StatusPesanan({ id, settings }: { id: string; settings: 
               <b>{order.nama}</b> · {order.wa}
             </p>
             <p>
-              Ambil {tanggalPanjang(order.tanggalAmbil)}
+              {order.pengiriman === 'kurir' ? 'Dikirim' : 'Diambil'}{' '}
+              {tanggalPanjang(order.tanggalAmbil)}
               {order.jamAmbil ? ` jam ${order.jamAmbil}` : ''}
             </p>
+            {order.pengiriman === 'kurir' && order.alamat && (
+              <p className="whitespace-pre-wrap">Alamat: {order.alamat}</p>
+            )}
             <p>Bayar {order.metodeBayar === 'qris' ? 'QRIS' : 'tunai'}</p>
           </div>
 
@@ -115,7 +119,7 @@ export default function StatusPesanan({ id, settings }: { id: string; settings: 
           </div>
 
           <a
-            href={waLink(settings.wa, `Assalamualikum Wr. Wb. Halo, saya mau tanya pesanan kode ${order.kode}.`)}
+            href={waLink(settings.wa, `Halo, saya mau tanya pesanan kode ${order.kode}.`)}
             target="_blank"
             rel="noopener noreferrer"
             className="btn mt-5 w-full bg-[#25D366] text-white"

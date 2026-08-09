@@ -5,9 +5,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { onValue, ref } from 'firebase/database';
 import { getDb } from '@/lib/firebase';
 import { buatPesanan } from '@/lib/order';
-import { rupiah, tanggalPanjang, thumb } from '@/lib/utils';
+import { rupiah, tanggalLayan, tanggalPanjang, thumb } from '@/lib/utils';
 import type { MenuItem, Order, Settings } from '@/lib/types';
-import FormPemesan, { pemesanKosong, type DataPemesan } from './FormPemesan';
+import FormPemesan, { pemesanAwal, type DataPemesan } from './FormPemesan';
 import Struk from './Struk';
 
 function habis(m: MenuItem) {
@@ -21,10 +21,11 @@ export default function PapanMenu({
   menuAwal: MenuItem[];
   settings: Settings;
 }) {
+  const layan = tanggalLayan(settings.jamGantiMenu);
   const [menu, setMenu] = useState<MenuItem[]>(menuAwal);
   const [keranjang, setKeranjang] = useState<Record<string, number>>({});
   const [bukaForm, setBukaForm] = useState(false);
-  const [pemesan, setPemesan] = useState<DataPemesan>(pemesanKosong);
+  const [pemesan, setPemesan] = useState<DataPemesan>(pemesanAwal(layan.tanggal));
   const [kirim, setKirim] = useState(false);
   const [galat, setGalat] = useState('');
   const [order, setOrder] = useState<Order | null>(null);
@@ -76,6 +77,8 @@ export default function PapanMenu({
     if (!pemesan.nama.trim()) return setGalat('Isi nama dulu ya.');
     if (pemesan.wa.replace(/\D/g, '').length < 9) return setGalat('Nomor WhatsApp belum benar.');
     if (!isi.length) return setGalat('Belum ada menu yang dipilih.');
+    if (pemesan.pengiriman === 'kurir' && pemesan.alamat.trim().length < 10)
+      return setGalat('Alamat pengiriman belum lengkap.');
     setKirim(true);
     try {
       const hasil = await buatPesanan({
@@ -85,13 +88,15 @@ export default function PapanMenu({
         items: isi,
         tanggalAmbil: pemesan.tanggalAmbil,
         jamAmbil: pemesan.jamAmbil,
+        pengiriman: pemesan.pengiriman,
+        alamat: pemesan.alamat,
         metodeBayar: pemesan.metodeBayar,
         catatan: pemesan.catatan,
       });
       setOrder(hasil);
       setBukaForm(false);
       setKeranjang({});
-      setPemesan(pemesanKosong);
+      setPemesan(pemesanAwal(layan.tanggal));
     } catch (e: any) {
       setGalat(e?.message || 'Pesanan gagal disimpan. Coba lagi sebentar.');
     } finally {
@@ -106,13 +111,18 @@ export default function PapanMenu({
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-kunyit">Papan menu</p>
             <h2 className="font-display text-3xl font-extrabold leading-tight sm:text-4xl">
-              Masakan hari ini
+              {layan.untukBesok ? 'Masakan besok' : 'Masakan hari ini'}
             </h2>
-            <p className="mt-1 text-sm text-paper/70">{tanggalPanjang(new Date())}</p>
+            <p className="mt-1 text-sm text-paper/70">{tanggalPanjang(layan.tanggal)}</p>
           </div>
-          <p className="rounded-full bg-paper/10 px-4 py-2 text-sm">
-            {tersedia.length > 0 ? `${tersedia.length} menu siap` : 'Belum ada menu dibuka'}
-          </p>
+          <div className="flex flex-col items-end gap-1">
+            <p className="rounded-full bg-paper/10 px-4 py-2 text-sm">
+              {tersedia.length > 0 ? `${tersedia.length} menu siap` : 'Belum ada menu dibuka'}
+            </p>
+            {layan.untukBesok && (
+              <p className="text-xs text-kunyit">Pesanan yang masuk sekarang untuk besok</p>
+            )}
+          </div>
         </div>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -178,10 +188,12 @@ export default function PapanMenu({
 
           {tersedia.length === 0 && (
             <div className="col-span-full rounded-2xl border-2 border-dashed border-paper/30 p-8 text-center">
-              <p className="font-display text-xl font-bold">Menu hari ini belum dibuka</p>
+              <p className="font-display text-xl font-bold">
+                Menu {layan.untukBesok ? 'besok' : 'hari ini'} belum dibuka
+              </p>
               <p className="mt-2 text-sm text-paper/70">
-                Mbak Ika biasanya membuka papan menu pagi hari. Sementara itu kamu tetap bisa pesan
-                lewat kolom pesanan khusus di bawah.
+                Menu untuk besok biasanya dipasang mulai jam {settings.jamGantiMenu || '13:00'}.
+                Sementara itu kamu tetap bisa pesan lewat kolom pesanan khusus di bawah.
               </p>
             </div>
           )}
@@ -251,7 +263,12 @@ export default function PapanMenu({
               </li>
             </ul>
 
-            <FormPemesan nilai={pemesan} ubah={setPemesan} settings={settings} />
+            <FormPemesan
+              nilai={pemesan}
+              ubah={setPemesan}
+              settings={settings}
+              tanggalLayanan={layan.tanggal}
+            />
 
             {galat && <p className="mt-3 text-sm font-semibold text-sambal">{galat}</p>}
 

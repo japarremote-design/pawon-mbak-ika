@@ -14,6 +14,20 @@ export default function KelolaMenu() {
   const [draf, setDraf] = useState<Draf | null>(null);
   const [unggah, setUnggah] = useState(false);
   const [galat, setGalat] = useState('');
+  const [tersalin, setTersalin] = useState(false);
+
+  // penanda tanggal memaksa WhatsApp/Facebook memuat ulang pratinjau tiap hari
+  const salinLink = async () => {
+    const t = new Date();
+    const tanda = `${t.getFullYear()}${String(t.getMonth() + 1).padStart(2, '0')}${String(t.getDate()).padStart(2, '0')}`;
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/?m=${tanda}`);
+      setTersalin(true);
+      setTimeout(() => setTersalin(false), 2500);
+    } catch {
+      setGalat('Link gagal disalin. Salin manual dari alamat situs.');
+    }
+  };
 
   useEffect(() => {
     const off = onValue(ref(getDb(), 'menu'), (snap) => {
@@ -93,14 +107,23 @@ export default function KelolaMenu() {
         </button>
       </div>
 
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex flex-wrap gap-2">
         <button onClick={() => semua(true)} className="btn-garis px-4 py-2 text-sm">
           Buka semua
         </button>
         <button onClick={() => semua(false)} className="btn-garis px-4 py-2 text-sm">
           Tutup semua
         </button>
+        <button onClick={salinLink} className="btn bg-kunyit px-4 py-2 text-sm font-bold text-ink">
+          {tersalin ? 'Link tersalin ✓' : 'Salin link untuk dibagikan'}
+        </button>
       </div>
+
+      <p className="mt-3 rounded-xl bg-kunyit/20 p-3 text-sm text-ink/80">
+        Gambar pratinjau saat link dibagikan otomatis berisi foto menu yang sedang dibuka.
+        Pakai tombol <b>Salin link</b> di atas tiap kali menu berganti — link-nya sudah diberi
+        penanda tanggal supaya WhatsApp menampilkan menu terbaru, bukan simpanan kemarin.
+      </p>
 
       <div className="mt-5 space-y-3">
         {menu.map((m) => (

@@ -42,6 +42,7 @@ Ringkasan aturannya:
 | `settings`, `menu` | siapa saja | hanya email admin |
 | `orders` (seluruh daftar) | hanya admin | — |
 | `orders/<id>` (satu pesanan) | siapa saja yang punya linknya | dibuat sekali oleh pemesan, diubah hanya admin |
+| kolom `pengiriman` & `alamat` | ikut aturan pesanan | `pengiriman` wajib `ambil` atau `kurir`, alamat maksimal 400 huruf |
 | `counters/<tanggal>` | siapa saja | hanya boleh naik +1 |
 
 Pesanan yang sudah masuk **tidak bisa diubah pemesan**, hanya admin. Ini penting supaya jumlahnya tidak bisa diutak-atik setelah dikirim.
@@ -121,6 +122,8 @@ saringan status & tanggal, tombol ubah status, dan tombol WA ke pemesan.
 Pesanan baru masuk langsung berbunyi *bel*; tekan "Aktifkan notifikasi" sekali supaya juga muncul notifikasi HP.
 
 **Menu** — tambah/ubah/hapus menu, unggah foto, isi sisa porsi.
+Ada tombol **Salin link untuk dibagikan**: link-nya diberi penanda tanggal (`/?m=20260809`)
+supaya WhatsApp memuat ulang pratinjau tiap menu berganti, bukan memakai simpanan kemarin.
 Saklar hijau di kanan = buka/tutup menu hari ini. Ada juga **Buka semua / Tutup semua**
 untuk ganti menu tiap pagi dengan cepat. Yang ditutup otomatis kena stempel **HABIS** di halaman depan.
 
@@ -129,11 +132,73 @@ untuk ganti menu tiap pagi dengan cepat. Yang ditutup otomatis kena stempel **HA
 - **Logo usaha** → sudah terpasang bawaan dari file logo. Kalau mau ganti, unggah di sini (masuk Cloudinary otomatis).
 - **Kode QRIS** → foto/screenshot QRIS milik Mbak Ika + nama pemiliknya.
 - Nama usaha, kalimat besar, deskripsi (dipakai juga untuk preview share), alamat, jam buka, batas waktu pesan.
+- **Jam papan menu pindah ke besok** (bawaan 13:00) — lihat bagian 6a.
+- **Keterangan ongkir** dan **wilayah yang dilayani kurir**.
 - **Media sosial**: Instagram, Facebook, TikTok, YouTube, Telegram, Threads, X.
   Yang diisi saja yang muncul — tampil di kartu "Ikuti Mbak Ika" dan di footer.
 - **Powered by**: nama + link pembuat di footer (default `https://www.qfazdigital.my.id/`).
 
 > Jangan lupa tekan **Simpan pengaturan** setelah unggah gambar.
+
+---
+
+## 6a. Jam pindah papan menu (menu besok)
+
+Papan menu punya **tanggal layanan**, bukan sekadar "hari ini". Aturannya satu angka:
+**Jam papan menu pindah ke besok** di Pengaturan (bawaan `13:00` WIB).
+
+- Sebelum jam 13.00 tanggal 9 Agustus → papan menampilkan **menu hari ini (9 Agustus)**.
+- Mulai jam 13.00 tanggal 9 Agustus → papan berpindah ke **menu besok (10 Agustus)**,
+  judulnya berubah jadi "Masakan besok", tanggal di form pesanan otomatis 10 Agustus,
+  dan pratinjau share ikut menulis **MENU BESOK**.
+
+Jadi alurnya: siang hari Mbak Ika buka panel Menu, tutup menu yang sudah habis,
+buka menu untuk besok — dan sejak jam itu semua pesanan yang masuk terhitung untuk besok.
+
+**Dashboard ikut berpindah.** Sebelum jam 13.00 kotak rekap tertulis "Pesanan hari ini";
+lewat jam itu berubah jadi **"Pesanan besok"** beserta tanggalnya, karena sejak jam itu
+yang perlu dihitung Mbak Ika adalah masakan besok. Ada tombol saring **"Hanya besok"**
+untuk melihat pesanan tanggal itu saja.
+
+Waktu dihitung dalam **WIB** baik di HP pemesan maupun di server Vercel (yang memakai UTC),
+jadi tidak akan meleset 7 jam.
+
+---
+
+## 6c. Diambil sendiri atau dikirim kurir
+
+Di form Data Pesanan ada pilihan **Diambil sendiri** / **Dikirim kurir**.
+Kalau dipilih kurir, kolom **Alamat pengiriman** muncul dan wajib diisi minimal 10 huruf —
+pesanan tidak bisa disimpan kalau alamatnya kosong.
+
+Alamat ikut ke mana-mana: tercatat di database, tercetak di struk, ikut terkirim di teks
+WhatsApp, dan tampil di kartu pesanan pada panel admin dengan penanda oranye **KURIR**.
+Di rekap dashboard ada kotak **"Dikirim kurir"** supaya Mbak Ika tahu berapa yang harus diantar.
+
+Keterangan ongkir dan wilayah antar diisi di Pengaturan, muncul otomatis saat pemesan
+memilih dikirim.
+
+---
+
+## 6b. Pratinjau saat link dibagikan
+
+Gambar pratinjau (Open Graph) **dibuat otomatis dari menu yang sedang dibuka** — foto tiap menu
+disusun jadi kisi dengan label nama + harga, ditambah kepala berisi logo, tanggal, dan jumlah
+"menu ready". Kalau tidak ada menu yang dibuka, yang tampil kartu bermerek biasa.
+
+Judul dan teks pratinjau juga ikut: "Pawon Mbak Ika — 8 menu ready hari ini" dan daftar menunya.
+
+Alamat gambarnya `/api/og?v=<sidik-menu>`; sidik itu berubah tiap menu, harga, atau fotonya
+berubah, jadi WhatsApp dan Facebook tahu harus mengambil gambar baru.
+
+Catatan penting: WhatsApp menyimpan pratinjau **per alamat link**. Kalau alamat yang dibagikan
+sama persis dengan yang kemarin, kadang WA masih menampilkan gambar lama beberapa jam.
+Karena itu pakai tombol **Salin link untuk dibagikan** di panel Menu — link-nya otomatis diberi
+penanda tanggal. Untuk Facebook, pratinjau bisa dipaksa segar lewat
+[Sharing Debugger](https://developers.facebook.com/tools/debug/).
+
+Foto menu sebaiknya mendatar (landscape) dan terang — di kisi pratinjau fotonya dipotong
+mengikuti kotak, jadi letakkan makanannya di tengah bingkai.
 
 ---
 

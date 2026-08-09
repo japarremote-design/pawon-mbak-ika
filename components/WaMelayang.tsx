@@ -10,7 +10,7 @@ export default function WaMelayang({ nomor, nama }: { nomor: string; nama: strin
     return () => clearTimeout(t);
   }, []);
 
-  const pesan = `Assalamualikum Wr. Wb. Halo ${nama}, saya mau tanya menu hari ini.`;
+  const pesan = `Halo ${nama}, saya mau tanya menu hari ini.`;
 
   return (
     <a

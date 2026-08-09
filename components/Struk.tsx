@@ -44,8 +44,14 @@ export default function Struk({
           <div className="space-y-1">
             <p>NAMA : {order.nama}</p>
             <p>WA&nbsp;&nbsp; : {order.wa}</p>
-            <p>AMBIL: {tanggalPanjang(order.tanggalAmbil)}</p>
+            <p>
+              {order.pengiriman === 'kurir' ? 'KIRIM' : 'AMBIL'}: {tanggalPanjang(order.tanggalAmbil)}
+            </p>
             {order.jamAmbil && <p>JAM&nbsp;&nbsp;: {order.jamAmbil}</p>}
+            <p>CARA&nbsp;: {order.pengiriman === 'kurir' ? 'DIKIRIM KURIR' : 'DIAMBIL SENDIRI'}</p>
+            {order.pengiriman === 'kurir' && order.alamat && (
+              <p className="whitespace-pre-wrap">ALAMAT: {order.alamat}</p>
+            )}
             <p>BAYAR: {order.metodeBayar === 'qris' ? 'QRIS' : 'TUNAI'}</p>
           </div>
 

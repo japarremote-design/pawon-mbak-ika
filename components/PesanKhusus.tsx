@@ -3,14 +3,14 @@
 import { useState } from 'react';
 import { buatPesanan } from '@/lib/order';
 import type { Order, Settings } from '@/lib/types';
-import FormPemesan, { pemesanKosong, type DataPemesan } from './FormPemesan';
+import FormPemesan, { pemesanAwal, type DataPemesan } from './FormPemesan';
 import Struk from './Struk';
 
 export default function PesanKhusus({ settings }: { settings: Settings }) {
   const [buka, setBuka] = useState(false);
   const [permintaan, setPermintaan] = useState('');
   const [porsi, setPorsi] = useState(10);
-  const [pemesan, setPemesan] = useState<DataPemesan>(pemesanKosong);
+  const [pemesan, setPemesan] = useState<DataPemesan>(pemesanAwal());
   const [kirim, setKirim] = useState(false);
   const [galat, setGalat] = useState('');
   const [order, setOrder] = useState<Order | null>(null);
@@ -20,6 +20,8 @@ export default function PesanKhusus({ settings }: { settings: Settings }) {
     if (!permintaan.trim()) return setGalat('Tulis dulu masakan yang diinginkan.');
     if (!pemesan.nama.trim()) return setGalat('Isi nama dulu ya.');
     if (pemesan.wa.replace(/\D/g, '').length < 9) return setGalat('Nomor WhatsApp belum benar.');
+    if (pemesan.pengiriman === 'kurir' && pemesan.alamat.trim().length < 10)
+      return setGalat('Alamat pengiriman belum lengkap.');
     setKirim(true);
     try {
       const hasil = await buatPesanan({
@@ -31,13 +33,15 @@ export default function PesanKhusus({ settings }: { settings: Settings }) {
         jumlahPorsi: porsi,
         tanggalAmbil: pemesan.tanggalAmbil,
         jamAmbil: pemesan.jamAmbil,
+        pengiriman: pemesan.pengiriman,
+        alamat: pemesan.alamat,
         metodeBayar: pemesan.metodeBayar,
         catatan: pemesan.catatan,
       });
       setOrder(hasil);
       setBuka(false);
       setPermintaan('');
-      setPemesan(pemesanKosong);
+      setPemesan(pemesanAwal());
     } catch (e: any) {
       setGalat(e?.message || 'Pesanan gagal disimpan. Coba lagi sebentar.');
     } finally {

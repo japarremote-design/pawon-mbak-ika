@@ -22,10 +22,30 @@ export function tanggalPendek(ms: number) {
   ).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`;
 }
 
+/**
+ * Waktu WIB, dipakai lewat getUTC* — hasilnya sama baik dijalankan di HP pemesan
+ * maupun di server Vercel yang memakai UTC.
+ */
+export function sekarangWib() {
+  return new Date(Date.now() + 7 * 60 * 60 * 1000);
+}
+
 export function isoHariIni(offsetHari = 0) {
-  const t = new Date();
-  t.setDate(t.getDate() + offsetHari);
-  return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+  const t = sekarangWib();
+  t.setUTCDate(t.getUTCDate() + offsetHari);
+  return `${t.getUTCFullYear()}-${String(t.getUTCMonth() + 1).padStart(2, '0')}-${String(t.getUTCDate()).padStart(2, '0')}`;
+}
+
+/**
+ * Tanggal yang sedang dilayani papan menu.
+ * Sebelum jam ganti (bawaan 13.00 WIB) papan masih menu hari ini;
+ * lewat jam itu papan berpindah ke menu besok.
+ */
+export function tanggalLayan(jamGanti = '13:00') {
+  const [jam, menit] = (jamGanti || '13:00').split(':').map((x) => Number(x) || 0);
+  const n = sekarangWib();
+  const untukBesok = n.getUTCHours() * 60 + n.getUTCMinutes() >= jam * 60 + menit;
+  return { tanggal: isoHariIni(untukBesok ? 1 : 0), untukBesok };
 }
 
 /** 08133151846 / +62 813-3151-8468 → 6281331518468 */
@@ -47,7 +67,12 @@ export function pesanWa(order: Omit<Order, 'id'>, s: Settings, urlCek: string) {
   baris.push(`Kode: *${order.kode}*`);
   baris.push('');
   baris.push(`Nama: ${order.nama}`);
-  baris.push(`Ambil/kirim: ${tanggalPanjang(order.tanggalAmbil)}${order.jamAmbil ? ' jam ' + order.jamAmbil : ''}`);
+  baris.push(
+    `${order.pengiriman === 'kurir' ? 'Dikirim' : 'Diambil'}: ${tanggalPanjang(order.tanggalAmbil)}${
+      order.jamAmbil ? ' jam ' + order.jamAmbil : ''
+    }`,
+  );
+  if (order.pengiriman === 'kurir' && order.alamat) baris.push(`Alamat: ${order.alamat}`);
   baris.push('');
   if (order.items.length) {
     baris.push('Rincian:');

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
-import { getSettings } from '@/lib/server-data';
+import { getMenu, getSettings } from '@/lib/server-data';
+import { tanggalLayan } from '@/lib/utils';
 import DaftarSW from '@/components/DaftarSW';
 
 export const dynamic = 'force-dynamic';
@@ -12,15 +13,39 @@ function siteUrl() {
   return raw.replace(/\/$/, '');
 }
 
+/** Sidik jari menu aktif — dipakai supaya WhatsApp/Facebook memuat ulang pratinjau tiap menu berganti. */
+function sidikMenu(daftar: { id: string; nama: string; harga: number; gambarUrl?: string }[]) {
+  const teks = daftar.map((m) => `${m.id}${m.harga}${m.gambarUrl || ''}`).join('|');
+  let h = 0;
+  for (let i = 0; i < teks.length; i++) h = (Math.imul(31, h) + teks.charCodeAt(i)) | 0;
+  return Math.abs(h).toString(36);
+}
+
 export async function generateMetadata(): Promise<Metadata> {
-  const s = await getSettings();
+  const [s, menu] = await Promise.all([getSettings(), getMenu()]);
   const url = siteUrl();
-  const judul = `${s.namaUsaha} — Menu Hari Ini & Pesan Online`;
-  const gambar = s.ogImage || `${url}/api/og`;
+
+  const aktif = menu.filter((m) => m.aktif && (m.stok == null || m.stok > 0));
+  const layan = tanggalLayan(s.jamGantiMenu);
+  const kapan = layan.untukBesok ? 'besok' : 'hari ini';
+  const judul = aktif.length
+    ? `${s.namaUsaha} — ${aktif.length} menu ready ${kapan}`
+    : `${s.namaUsaha} — Menu Hari Ini & Pesan Online`;
+
+  // isi teks pratinjau ikut menyebut menu yang sedang dibuka
+  const daftarMenu = aktif
+    .slice(0, 6)
+    .map((m) => `${m.nama} ${m.harga >= 1000 ? Math.round(m.harga / 1000) + 'k' : m.harga}`)
+    .join(' · ');
+  const deskripsi = aktif.length
+    ? `Menu ${kapan}: ${daftarMenu}${aktif.length > 6 ? ' · dan lainnya' : ''}. Pesan online, bayar tunai atau QRIS.`
+    : s.deskripsi;
+
+  const gambar = s.ogImage || `${url}/api/og?v=${sidikMenu(aktif)}${layan.untukBesok ? 'b' : ''}`;
   return {
     metadataBase: new URL(url),
     title: { default: judul, template: `%s · ${s.namaUsaha}` },
-    description: s.deskripsi,
+    description: deskripsi,
     applicationName: s.namaUsaha,
     manifest: '/manifest.webmanifest',
     openGraph: {
@@ -29,13 +54,13 @@ export async function generateMetadata(): Promise<Metadata> {
       url,
       siteName: s.namaUsaha,
       title: judul,
-      description: s.deskripsi,
+      description: deskripsi,
       images: [{ url: gambar, width: 1200, height: 630, alt: s.namaUsaha }],
     },
     twitter: {
       card: 'summary_large_image',
       title: judul,
-      description: s.deskripsi,
+      description: deskripsi,
       images: [gambar],
     },
     robots: { index: true, follow: true },

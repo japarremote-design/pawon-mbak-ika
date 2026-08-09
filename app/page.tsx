@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import { getMenu, getSettings } from '@/lib/server-data';
-import { tanggalPanjang, waLink } from '@/lib/utils';
+import { tanggalLayan, tanggalPanjang, waLink } from '@/lib/utils';
 import PapanMenu from '@/components/PapanMenu';
 import PesanKhusus from '@/components/PesanKhusus';
 import WaMelayang from '@/components/WaMelayang';
@@ -13,6 +13,7 @@ export const dynamic = 'force-dynamic';
 export default async function Beranda() {
   const [settings, menu] = await Promise.all([getSettings(), getMenu()]);
   const siap = menu.filter((m) => m.aktif && (m.stok == null || m.stok > 0)).length;
+  const layan = tanggalLayan(settings.jamGantiMenu);
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -73,7 +74,10 @@ export default async function Beranda() {
           <p className="mt-10 text-xs uppercase tracking-[0.3em] text-kunyit">
             Masakan tradisional Nusantara · sejak 2010
           </p>
-          <p className="mt-1 text-sm text-paper/60">{tanggalPanjang(new Date())}</p>
+          <p className="mt-1 text-sm text-paper/60">
+            Papan menu {layan.untukBesok ? 'untuk besok' : 'hari ini'} ·{' '}
+            {tanggalPanjang(layan.tanggal)}
+          </p>
           <h1 className="mt-3 font-display text-[2.6rem] font-extrabold leading-[1.02] sm:text-6xl">
             {settings.tagline}
           </h1>
@@ -84,7 +88,7 @@ export default async function Beranda() {
               {siap > 0 ? `Lihat ${siap} menu hari ini` : 'Lihat papan menu'}
             </a>
             <a
-              href={waLink(settings.wa, `Assalamualikum Wr. Wb. Halo ${settings.namaUsaha}, saya mau pesan.`)}
+              href={waLink(settings.wa, `Halo ${settings.namaUsaha}, saya mau pesan.`)}
               target="_blank"
               rel="noopener noreferrer"
               className="btn border-2 border-paper/40 text-paper hover:bg-paper hover:text-daun"
@@ -93,10 +97,20 @@ export default async function Beranda() {
             </a>
           </div>
 
-          <dl className="mt-10 grid gap-3 sm:grid-cols-3">
+          <dl className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[
               { t: 'Jam buka', d: settings.jamBuka || 'Hubungi lewat WA' },
               { t: 'Pembayaran', d: 'Tunai atau QRIS' },
+              {
+                t: 'Cara terima',
+                d: settings.wilayahAntar
+                  ? `Diambil sendiri atau dikirim kurir (${settings.wilayahAntar})`
+                  : 'Diambil sendiri atau dikirim kurir',
+              },
+              {
+                t: 'Menu besok dibuka',
+                d: `Mulai jam ${settings.jamGantiMenu || '13:00'} WIB`,
+              },
               { t: 'Batas pesan', d: settings.batasPesan || 'Selama porsi masih ada' },
             ].map((x) => (
               <div key={x.t} className="rounded-2xl bg-paper/10 p-4">

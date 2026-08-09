@@ -2,7 +2,7 @@
 
 import { push, ref, runTransaction, serverTimestamp, update } from 'firebase/database';
 import { getDb } from './firebase';
-import type { Order, OrderItem } from './types';
+import type { Order, OrderItem, Pengiriman } from './types';
 
 export type OrderInput = {
   tipe: 'reguler' | 'custom';
@@ -13,6 +13,8 @@ export type OrderInput = {
   jumlahPorsi?: number;
   tanggalAmbil: string;
   jamAmbil?: string;
+  pengiriman: Pengiriman;
+  alamat?: string;
   metodeBayar: 'tunai' | 'qris';
   catatan?: string;
 };
@@ -45,6 +47,8 @@ export async function buatPesanan(input: OrderInput): Promise<Order> {
     jumlahPorsi: input.jumlahPorsi || null,
     tanggalAmbil: input.tanggalAmbil,
     jamAmbil: input.jamAmbil || null,
+    pengiriman: input.pengiriman,
+    alamat: input.pengiriman === 'kurir' ? input.alamat?.trim() || null : null,
     metodeBayar: input.metodeBayar,
     catatan: input.catatan?.trim() || null,
     total,
@@ -66,6 +70,8 @@ export async function buatPesanan(input: OrderInput): Promise<Order> {
     jumlahPorsi: input.jumlahPorsi,
     tanggalAmbil: input.tanggalAmbil,
     jamAmbil: input.jamAmbil,
+    pengiriman: input.pengiriman,
+    alamat: input.pengiriman === 'kurir' ? input.alamat : undefined,
     metodeBayar: input.metodeBayar,
     catatan: input.catatan,
     total,

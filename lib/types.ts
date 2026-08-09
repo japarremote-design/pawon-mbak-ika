@@ -20,6 +20,8 @@ export type OrderItem = {
   qty: number;
 };
 
+export type Pengiriman = 'ambil' | 'kurir';
+
 export type OrderStatus = 'baru' | 'dikonfirmasi' | 'diproses' | 'selesai' | 'batal';
 
 export type Order = {
@@ -32,8 +34,10 @@ export type Order = {
   /** Untuk pesanan di luar daftar menu. */
   permintaan?: string;
   jumlahPorsi?: number;
-  tanggalAmbil: string; // YYYY-MM-DD
+  tanggalAmbil: string; // YYYY-MM-DD — tanggal ambil / kirim
   jamAmbil?: string;
+  pengiriman: Pengiriman;
+  alamat?: string;
   metodeBayar: 'tunai' | 'qris';
   catatan?: string;
   total: number;
@@ -53,7 +57,11 @@ export type Settings = {
   alamat?: string;
   jamBuka?: string;
   batasPesan?: string; // mis. "Pesan sebelum jam 20.00 untuk besok"
+  /** Jam (HH:MM, WIB) saat papan menu berpindah ke tanggal besok. */
+  jamGantiMenu?: string;
   ongkir?: string;
+  /** Wilayah antar kurir, ditampilkan saat pemesan memilih dikirim. */
+  wilayahAntar?: string;
   instagram?: string;
   facebook?: string;
   tiktok?: string;
@@ -75,6 +83,8 @@ export const DEFAULT_SETTINGS: Settings = {
   wa: '6281331518468',
   jamBuka: 'Setiap hari, 06.00 - 14.00',
   batasPesan: 'Pesanan untuk besok ditutup jam 20.00',
+  jamGantiMenu: '13:00',
+  ongkir: 'Ongkir menyesuaikan jarak, dikabari lewat WhatsApp',
   qrisNama: 'PAWON MBAK IKA',
   poweredByNama: 'QFAZ Digital',
   poweredByUrl: 'https://www.qfazdigital.my.id/',
