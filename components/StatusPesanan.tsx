@@ -55,7 +55,7 @@ export default function StatusPesanan({ id, settings }: { id: string; settings: 
             Link-nya mungkin salah ketik. Kirim kode pesananmu ke WhatsApp, nanti dicarikan.
           </p>
           <a
-            href={waLink(settings.wa, 'Halo, saya mau cek status pesanan saya.')}
+            href={waLink(settings.wa, 'Assalamualaikum wr. wb. Halo, saya mau cek status pesanan saya.')}
             target="_blank"
             rel="noopener noreferrer"
             className="btn-utama mt-4 w-full"
@@ -119,7 +119,7 @@ export default function StatusPesanan({ id, settings }: { id: string; settings: 
           </div>
 
           <a
-            href={waLink(settings.wa, `Halo, saya mau tanya pesanan kode ${order.kode}.`)}
+            href={waLink(settings.wa, `Assalamualaikum wr. wb. Halo, saya mau tanya pesanan kode ${order.kode}.`)}
             target="_blank"
             rel="noopener noreferrer"
             className="btn mt-5 w-full bg-[#25D366] text-white"
