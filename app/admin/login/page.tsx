@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -31,6 +33,20 @@ export default function Login() {
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center px-4">
+      <Link
+        href="/"
+        className="mb-6 inline-flex items-center gap-2 self-start rounded-full border border-daun/25 px-4 py-2 text-sm font-semibold text-daun transition hover:bg-daun hover:text-paper"
+      >
+        <span aria-hidden>←</span> Kembali ke halaman depan
+      </Link>
+
+      <Image
+        src="/logo.png"
+        alt="Pawon Mbak Ika"
+        width={72}
+        height={72}
+        className="mb-3 h-16 w-16 rounded-2xl"
+      />
       <h1 className="font-display text-3xl font-extrabold">Panel Mbak Ika</h1>
       <p className="mt-1 text-sm text-ink/70">
         Masuk untuk mengatur menu hari ini dan melihat pesanan masuk.
@@ -68,6 +84,9 @@ export default function Login() {
         <button onClick={masuk} disabled={proses} className="btn-utama w-full disabled:opacity-60">
           {proses ? 'Memeriksa…' : 'Masuk'}
         </button>
+        <p className="text-center text-xs text-ink/55">
+          Halaman ini khusus pengelola. Pelanggan tidak perlu masuk untuk memesan.
+        </p>
       </div>
     </main>
   );

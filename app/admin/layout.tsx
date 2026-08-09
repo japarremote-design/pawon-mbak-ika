@@ -33,9 +33,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <p className="text-ink/70">
           Akun {user?.email || 'ini'} tidak terdaftar sebagai pengelola.
         </p>
-        <button className="btn-garis mt-4" onClick={() => signOut(getAuthKlien())}>
-          Keluar
-        </button>
+        <div className="mt-4 flex flex-wrap justify-center gap-3">
+          <button className="btn-garis" onClick={() => signOut(getAuthKlien())}>
+            Keluar
+          </button>
+          <Link href="/" className="btn text-ink/60 hover:text-daun">
+            ← Kembali ke halaman depan
+          </Link>
+        </div>
       </div>
     );
   }
@@ -57,12 +62,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </Link>
             ))}
           </nav>
-          <button
-            onClick={() => signOut(getAuthKlien())}
-            className="whitespace-nowrap text-sm font-semibold text-ink/60 hover:text-sambal"
-          >
-            Keluar
-          </button>
+          <div className="flex shrink-0 items-center gap-3">
+            <Link
+              href="/"
+              className="whitespace-nowrap text-sm font-semibold text-daun hover:underline"
+              title="Lihat halaman yang dilihat pelanggan"
+            >
+              Lihat situs
+            </Link>
+            <button
+              onClick={() => signOut(getAuthKlien())}
+              className="whitespace-nowrap text-sm font-semibold text-ink/60 hover:text-sambal"
+            >
+              Keluar
+            </button>
+          </div>
         </div>
       </header>
       <div className="mx-auto w-full max-w-4xl px-4 py-6">{children}</div>
