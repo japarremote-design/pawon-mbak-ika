@@ -12,7 +12,6 @@ export const dynamic = 'force-dynamic';
 
 export default async function Beranda() {
   const [settings, menu] = await Promise.all([getSettings(), getMenu()]);
-  const siap = menu.filter((m) => m.aktif && (m.stok == null || m.stok > 0)).length;
   const layan = tanggalLayan(settings.jamGantiMenu);
 
   const jsonLd = {
@@ -35,69 +34,63 @@ export default async function Beranda() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* HERO */}
-      <header className="relative overflow-hidden bg-daun text-paper">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-kunyit/20 blur-3xl"
-        />
-        <div className="mx-auto w-full max-w-5xl px-4 pb-14 pt-8 sm:pt-12">
-          <nav className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              {settings.logoUrl ? (
-                <span className="relative">
-                  <Image
-                    src={settings.logoUrl}
-                    alt={settings.namaUsaha}
-                    width={56}
-                    height={56}
-                    className="h-14 w-14 rounded-2xl bg-white object-contain p-1"
-                    unoptimized
-                  />
-                  <span
-                    aria-hidden
-                    className="absolute -top-2 left-1/2 h-4 w-1.5 -translate-x-1/2 rounded-full bg-paper/70 animate-uap"
-                  />
-                </span>
-              ) : (
-                <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-paper/10 text-2xl">
-                  🍲
-                </span>
-              )}
-              <span className="font-display text-lg font-extrabold tracking-tight">
-                {settings.namaUsaha}
+      {/* KEPALA RAMPING — pelanggan langsung ketemu papan menu di bawahnya */}
+      <header className="bg-daun text-paper">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-3">
+          <div className="flex min-w-0 items-center gap-3">
+            {settings.logoUrl ? (
+              <span className="relative shrink-0">
+                <Image
+                  src={settings.logoUrl}
+                  alt={settings.namaUsaha}
+                  width={48}
+                  height={48}
+                  className="h-12 w-12 rounded-xl bg-white object-contain p-0.5"
+                  unoptimized
+                />
+                <span
+                  aria-hidden
+                  className="absolute -top-2 left-1/2 h-3 w-1.5 -translate-x-1/2 rounded-full bg-paper/70 animate-uap"
+                />
               </span>
+            ) : (
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-paper/10 text-xl">
+                🍲
+              </span>
+            )}
+            <div className="min-w-0">
+              <p className="truncate font-display text-base font-extrabold leading-tight sm:text-lg">
+                {settings.namaUsaha}
+              </p>
+              <p className="truncate text-[11px] uppercase tracking-[0.2em] text-kunyit">
+                Masakan tradisional Nusantara · sejak 2010
+              </p>
             </div>
-            <TombolPasang kelas="btn border-2 border-paper/40 px-4 py-2 text-sm text-paper hover:bg-paper hover:text-daun" />
-          </nav>
+          </div>
+          <TombolPasang kelas="btn shrink-0 border-2 border-paper/40 px-3 py-2 text-xs text-paper hover:bg-paper hover:text-daun" />
+        </div>
+      </header>
 
-          <p className="mt-10 text-xs uppercase tracking-[0.3em] text-kunyit">
-            Masakan tradisional Nusantara · sejak 2010
-          </p>
-          <p className="mt-1 text-sm text-paper/60">
-            Papan menu {layan.untukBesok ? 'untuk besok' : 'hari ini'} ·{' '}
-            {tanggalPanjang(layan.tanggal)}
-          </p>
-          <h1 className="mt-3 font-display text-[2.6rem] font-extrabold leading-[1.02] sm:text-6xl">
+      <PapanMenu menuAwal={menu} settings={settings} />
+
+      {/* TENTANG & INFO — turun ke bawah papan menu */}
+      <section className="mx-auto w-full max-w-5xl px-4 pb-12">
+        <div className="papan p-6 sm:p-8">
+          <h1 className="font-display text-3xl font-extrabold leading-[1.05] sm:text-5xl">
             {settings.tagline}
           </h1>
-          <p className="mt-4 max-w-xl text-paper/80">{settings.deskripsi}</p>
+          <p className="mt-3 max-w-xl text-paper/80">{settings.deskripsi}</p>
 
-          <div className="mt-7 flex flex-wrap gap-3">
-            <a href="#menu" className="btn-utama">
-              {siap > 0 ? `Lihat ${siap} menu hari ini` : 'Lihat papan menu'}
-            </a>
-            <a
-              href={waLink(settings.wa, `Assalamualaikum wr. wb. Halo ${settings.namaUsaha}, saya mau pesan.`)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn border-2 border-paper/40 text-paper hover:bg-paper hover:text-daun"
-            >
-              Tanya lewat WhatsApp
-            </a>
-          </div>
+          <a
+            href={waLink(settings.wa, `Assalamualaikum wr. wb. Halo ${settings.namaUsaha}, saya mau pesan.`)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn mt-6 border-2 border-paper/40 text-paper hover:bg-paper hover:text-daun"
+          >
+            Tanya lewat WhatsApp
+          </a>
 
-          <dl className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <dl className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[
               { t: 'Jam buka', d: settings.jamBuka || 'Hubungi lewat WA' },
               { t: 'Pembayaran', d: 'Tunai atau QRIS' },
@@ -107,10 +100,7 @@ export default async function Beranda() {
                   ? `Diambil sendiri atau dikirim kurir (${settings.wilayahAntar})`
                   : 'Diambil sendiri atau dikirim kurir',
               },
-              {
-                t: 'Menu besok dibuka',
-                d: `Mulai jam ${settings.jamGantiMenu || '13:00'} WIB`,
-              },
+              { t: 'Menu besok dibuka', d: `Mulai jam ${settings.jamGantiMenu || '13:00'} WIB` },
               { t: 'Batas pesan', d: settings.batasPesan || 'Selama porsi masih ada' },
             ].map((x) => (
               <div key={x.t} className="rounded-2xl bg-paper/10 p-4">
@@ -120,9 +110,8 @@ export default async function Beranda() {
             ))}
           </dl>
         </div>
-      </header>
+      </section>
 
-      <PapanMenu menuAwal={menu} settings={settings} />
       <PesanKhusus settings={settings} />
 
       {/* CARA PESAN */}
@@ -212,7 +201,7 @@ export default async function Beranda() {
         </div>
         {settings.poweredByUrl && (
           <p className="mx-auto mt-6 w-full max-w-5xl text-xs text-ink/50">
-            powered by{' '}
+            Landing Page {settings.namaUsaha.toUpperCase()} by{' '}
             <a
               className="underline hover:text-daun"
               href={settings.poweredByUrl}
